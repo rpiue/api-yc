@@ -37,6 +37,11 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+app.get("/", (req, res) => {
+  res.send("Prohibido");
+});
+
+
 // Ruta para autenticar y enviar un token a la app Flutter
 app.post("/index", (req, res) => {
   const { appKey } = req.body;
