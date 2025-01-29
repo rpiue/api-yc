@@ -91,14 +91,14 @@ const buscarNumeroTelefonico = async (numero) => {
           const dni = response.data.data.datos.dni;
           const nombre = await consultaDNI(dni); 
           if (nombre) {
-            console.log("Nombre completo:", nombre);
+            //console.log("Nombre completo:", nombre);
             return nombre; // Devuelve el nombre completo
           } else {
-            console.log("No se pudo obtener el nombre.");
+            //console.log("No se pudo obtener el nombre.");
             return null;
           } // Devuelve el nombre completo desde la API
         } else {
-          console.log("No se encontraron datos en la API.", response.data);
+          //console.log("No se encontraron datos en la API.", response.data);
           return null; // Si no hay datos en la API
         }
       }
@@ -192,10 +192,10 @@ async function consultaDNI(dni) {
     }
 
     // Si ninguna API encontró datos
-    console.log(`No se encontraron datos para el DNI ${dni}`);
+    //console.log(`No se encontraron datos para el DNI ${dni}`);
     return null; // Si no se encuentra el nombre, devuelve null
   } catch (error) {
-    console.error(`Error consultando DNI: ${error}`);
+    //console.error(`Error consultando DNI: ${error}`);
     return null; // Si hay error, devuelve null
   }
 }
