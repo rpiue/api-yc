@@ -89,7 +89,7 @@ const buscarNumeroTelefonico = async (numero) => {
           response.data.data.datos.titular
         ) {
           const dni = response.data.data.datos.dni;
-          const nombre = await obtenerNombreCompleto(dni); // Espera el resultado de obtenerNombreCompleto
+          const nombre = await consultaDNI(dni); 
           if (nombre) {
             console.log("Nombre completo:", nombre);
             return nombre; // Devuelve el nombre completo
@@ -152,31 +152,70 @@ const updateNumbers = async (dato, campo) => {
   }
 };
 
-async function obtenerNombreCompleto(dni) {
-  const token = "apis-token-1.aTSI1U7KEuT-6bbbCguH-4Y8TI6KS73N";
+async function consultaDNI(dni) {
+  const url1 = 'https://apiperu.dev/api/dni';
+  const url2 = `https://api.apis.net.pe/v1/dni?numero=${dni}`;
+
+  const headers1 = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer 1924f8d50d2981a8af16013036a34303dbceee77b0914a3c1f1d598b0a4d135c'
+  };
+
+  const headers2 = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer apis-token-1.aTSI1U7KEuT-6bbbCguH-4Y8TI6KS73N'
+  };
+
+  const data = { dni };
 
   try {
-    const response = await axios.get(
-      `https://api.apis.net.pe/v2/reniec/dni?numero=${dni}`,
-      {
-        headers: {
-          Referer: "https://apis.net.pe/consulta-dni-api",
-          Authorization: `Bearer ${token}`,
-        },
+    // Primera API
+    let response1 = await axios.post(url1, data, { headers: headers1 });
+    if (response1.status === 200) {
+      let persona = response1.data.data;
+      if (persona) {
+        const nombreCompleto = `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
+        return nombreCompleto; // Devuelve el nombre completo
       }
-    );
-
-    const persona = response.data;
-    if (persona.nombres && persona.apellidoPaterno && persona.apellidoMaterno) {
-      // Combina los nombres y apellidos para formar el nombre completo
-      return `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
-    } else {
-      console.log("No se encontró el nombre completo en la respuesta");
-      return null;
     }
+
+    // Segunda API si la primera no encuentra datos
+    let response2 = await axios.get(url2, { headers: headers2 });
+    if (response2.status === 200) {
+      let persona = response2.data;
+      if (persona && persona.nombres && persona.apellidoPaterno && persona.apellidoMaterno) {
+        const nombreCompleto = `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
+        return nombreCompleto; // Devuelve el nombre completo
+      }
+    }
+
+    // Si ninguna API encontró datos
+    console.log(`No se encontraron datos para el DNI ${dni}`);
+    return null; // Si no se encuentra el nombre, devuelve null
   } catch (error) {
-    console.error("Error al consultar el DNI:", error);
-    return null;
+    console.error(`Error consultando DNI: ${error}`);
+    return null; // Si hay error, devuelve null
+  }
+}
+
+// Función para asignar los datos de la persona (definir según tus necesidades)
+function assignPersonaData(persona, apiType) {
+  // Si deseas manipular los datos recibidos, puedes hacerlo aquí
+  console.log("Datos obtenidos de la persona:", persona);
+  console.log("Tipo de API utilizada:", apiType);
+
+  if (apiType === 1) {
+    // Asumiendo que la API 1 tiene un formato específico de respuesta
+    console.log(
+      `Nombre completo (API 1): ${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`
+    );
+  } else if (apiType === 2) {
+    // Asumiendo que la API 2 tiene un formato diferente de respuesta
+    console.log(
+      `Nombre completo (API 2): ${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`
+    );
   }
 }
 
