@@ -185,8 +185,8 @@ async function consultaDNI(dni) {
     let response2 = await axios.get(url2, { headers: headers2 });
     if (response2.status === 200) {
       let persona = response2.data;
-      if (persona && persona.nombres && persona.apellidoPaterno && persona.apellidoMaterno) {
-        const nombreCompleto = `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
+      if (persona && persona.nombres && persona.apellido_paterno && persona.apellidoMaterno) {
+        const nombreCompleto = `${persona.nombre_completo}`;
         return nombreCompleto; // Devuelve el nombre completo
       }
     }
