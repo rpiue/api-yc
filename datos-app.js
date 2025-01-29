@@ -176,7 +176,7 @@ async function consultaDNI(dni) {
     if (response1.status === 200) {
       let persona = response1.data.data;
       if (persona) {
-        const nombreCompleto = `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
+        const nombreCompleto = `${persona.nombres} ${persona.apellido_paterno} ${persona.apellido_materno}`;
         return nombreCompleto; // Devuelve el nombre completo
       }
     }
@@ -186,7 +186,7 @@ async function consultaDNI(dni) {
     if (response2.status === 200) {
       let persona = response2.data;
       if (persona && persona.nombres && persona.apellido_paterno && persona.apellidoMaterno) {
-        const nombreCompleto = `${persona.nombre_completo}`;
+        const nombreCompleto = `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
         return nombreCompleto; // Devuelve el nombre completo
       }
     }
