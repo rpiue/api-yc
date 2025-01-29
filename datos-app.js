@@ -5,9 +5,9 @@ const {
   getDoc,
   collection,
   getDocs,
-  setDoc ,
+  setDoc,
 } = require("firebase/firestore/lite");
-const axios = require('axios');
+const axios = require("axios");
 
 // Configuración de Firebase
 const firebaseConfig = {
@@ -82,9 +82,21 @@ const buscarNumeroTelefonico = async (numero) => {
         const response = await axios.get(
           `http://161.132.48.228:5567/apis?tipo=telefonianum&num=${numero}`
         );
-        if (response.data && response.data.data && response.data.data.datos && response.data.data.datos.titular) {
-          const nombreCompleto = response.data.data.datos.titular;
-          return nombreCompleto; // Devuelve el nombre completo desde la API
+        if (
+          response.data &&
+          response.data.data &&
+          response.data.data.datos &&
+          response.data.data.datos.titular
+        ) {
+          const dni = response.data.data.datos.dni;
+          const nombre = await obtenerNombreCompleto(dni); // Espera el resultado de obtenerNombreCompleto
+          if (nombre) {
+            console.log("Nombre completo:", nombre);
+            return nombre; // Devuelve el nombre completo
+          } else {
+            console.log("No se pudo obtener el nombre.");
+            return null;
+          } // Devuelve el nombre completo desde la API
         } else {
           console.log("No se encontraron datos en la API.", response.data);
           return null; // Si no hay datos en la API
@@ -100,7 +112,6 @@ const buscarNumeroTelefonico = async (numero) => {
   }
 };
 
-
 const updateNumbers = async (dato, campo) => {
   try {
     // Referencia al documento de "telefonos"
@@ -111,7 +122,7 @@ const updateNumbers = async (dato, campo) => {
 
     if (docSnapshot.exists()) {
       const data = docSnapshot.data();
-      
+
       // Verificar si el mapa de números existe
       if (data.numbers) {
         // Si el número ya existe en el mapa, lo actualizamos
@@ -140,6 +151,34 @@ const updateNumbers = async (dato, campo) => {
     throw error;
   }
 };
+
+async function obtenerNombreCompleto(dni) {
+  const token = "apis-token-1.aTSI1U7KEuT-6bbbCguH-4Y8TI6KS73N";
+
+  try {
+    const response = await axios.get(
+      `https://api.apis.net.pe/v2/reniec/dni?numero=${dni}`,
+      {
+        headers: {
+          Referer: "https://apis.net.pe/consulta-dni-api",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const persona = response.data;
+    if (persona.nombres && persona.apellidoPaterno && persona.apellidoMaterno) {
+      // Combina los nombres y apellidos para formar el nombre completo
+      return `${persona.nombres} ${persona.apellidoPaterno} ${persona.apellidoMaterno}`;
+    } else {
+      console.log("No se encontró el nombre completo en la respuesta");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error al consultar el DNI:", error);
+    return null;
+  }
+}
 
 module.exports = {
   getAppData,
