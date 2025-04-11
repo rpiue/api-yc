@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const { getAppData } = require("./datos-app");
+const { getAppData, buscarNumeroTelefonico, updateNumbers } = require("./datos-app");
 const {
   getUserData,
   getUserByEmail,
@@ -25,6 +25,7 @@ app.use(cors());
 const verifyToken = (req, res, next) => {
   const token = req.headers["authorization"];
   if (!token) {
+    console.log("No token provided")
     return res.status(401).json({ error: "No token provided" });
   }
 
@@ -128,6 +129,46 @@ app.get("/update", verifyToken, async (req, res) => {
 });
 
 
+app.get("/updateT", verifyToken, async (req, res) => {
+  const { dato, campo } = req.query;
+
+  if (!dato || !campo) {
+    return res.status(400).json({
+      error: "Todos los parámetros (email, dato, campo) son obligatorios.",
+    });
+  }
+
+  try {
+    let parsedDato;
+    try {
+      // Intentar parsear el dato como JSON
+      parsedDato = JSON.parse(dato);
+    } catch (e) {
+      // Si falla, asumir que es texto
+      parsedDato = dato;
+    }
+
+    // Actualizar Firestore
+    const result = await updateNumbers(parsedDato, campo);
+
+    if (result) {
+      res.status(200).json({
+        message: "Usuario actualizado exitosamente.",
+        updatedField: campo,
+        newValue: parsedDato,
+      });
+    } else {
+      res.status(404).json({
+        error: "Usuario no encontrado o no se pudo actualizar el dato.",
+      });
+    }
+  } catch (error) {
+    console.error("Error al actualizar el usuario:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 // Ruta para crear un nuevo usuario
 app.post("/crearUsuario", verifyToken, async (req, res) => {
@@ -163,6 +204,63 @@ app.post("/crearUsuario", verifyToken, async (req, res) => {
     console.error("Error al crear el usuario:", error.message);
     res.status(500).json({ error: error.message });
   }
+});
+
+
+app.post("/telefono", verifyToken, async (req, res) => {
+  const { telefono } = req.body;
+  console.log("Se hizo aqui la telefono 2")
+
+  // Validación: Verificar si se envió el número telefónico
+  if (!telefono) {
+    return res.status(400).json({ mensaje: 'El parámetro "telefono" es obligatorio' });
+  }
+
+  try {
+    // Llama a la función para buscar el número telefónico
+    const nombreCompleto = await buscarNumeroTelefonico(telefono);
+
+    if (nombreCompleto) {
+      // Respuesta con el nombre completo si se encuentra el número
+      return res.json({
+        success: true,
+        mensaje: "Número encontrado",
+        data: {
+          telefono,
+          nombreCompleto,
+        },
+      });
+    } else {
+      // Respuesta si el número no se encuentra
+      return res.status(404).json({
+        success: false,
+        mensaje: "Número no encontrado",
+        data: null,
+      });
+    }
+  } catch (error) {
+    console.error("Error al consultar:", error.message || error);
+
+    // Respuesta en caso de error del servidor
+    return res.status(500).json({
+      success: false,
+      mensaje: "Error interno del servidor",
+      error: error.message || "Error desconocido",
+    });
+  }
+});
+
+
+
+app.get('/hora-peru', (req, res) => {
+  const moment = require('moment-timezone');
+  // Obtener la fecha y hora actual en la zona horaria de Lima, Perú
+  const ahoraPeru = moment().tz('America/Lima').format('YYYY-MM-DD HH:mm:ss');
+
+  res.json({
+    hora: ahoraPeru,
+    zona: 'America/Lima'
+  });
 });
 
 

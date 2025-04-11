@@ -150,6 +150,7 @@ async function guardarUsuario(usuario) {
 
     //datos adicionales
     usuario.plan = "Sin Plan";
+    usuario.clave = "";
     usuario.eliminado = false;
     usuario.inicio = false;
     usuario.dispositivos = {
